@@ -1,9 +1,9 @@
 # Cyber Security Threat Detection with Machine Learning and Deep Learning (CICIDS2017)
 | Name | Roll No | 
 |---|---|
-| Keshav Kathuria | 2301730348
+| Adarsh Kumar Sharma (Copilot, B.Tech CSE Data Science) | 2301420058 |
 
-Detecting malicious network traffic from flow-level features. This project classifies network flows from the **CICIDS2017** dataset as **normal** or **suspicious**, using machine learning baselines and a small neural network (MLP). It then compares the approaches on detection quality, training time and practical feasibility.
+Detecting malicious network traffic from flow-level features. This project classifies network flows from the **CICIDS2017** dataset as **normal** or **suspicious**, using machine learning baselines and a comparison with a neural network. The work is structured around a clean EDA and model evaluation workflow.
 
 ---
 
@@ -33,7 +33,7 @@ Detecting malicious network traffic from flow-level features. This project class
 | 3. ML-based threat classification | Preprocessing, Logistic Regression and Decision Tree, evaluation with accuracy, precision, recall, F1, ROC and PR curves | notebook Parts 2 and 3 |
 | 4. Introduction to deep learning | MLP neural network compared with the ML models on training time, detection accuracy and feasibility | notebook Part 4 |
 
-**Problem framing:** binary classification. The original `Label` column is converted to `0 = normal (BENIGN)` and `1 = suspicious (any attack type)`. Per-attack-type detection rates are reported separately so that weak spots on rare attacks are not hidden by the overall score.
+**Problem framing:** binary classification. The original `Label` column is converted to `0 = normal (BENIGN)` and `1 = suspicious (any attack type)`. Per-attack-type detection rates are reported separately to avoid overconfidence from a single headline metric.
 
 ---
 
@@ -45,7 +45,7 @@ Detecting malicious network traffic from flow-level features. This project class
 │   └── cicids2017_cleaned.csv          # CICIDS2017 flow data (see Dataset section)
 ├── notebooks/
 │   ├── cyber_threat_classification.ipynb   # main notebook: setup, preprocessing, ML, DL comparison
-│   └── EDA.py                              # exploratory data analysis
+│   └���─ EDA.py                              # exploratory data analysis
 ├── README.md
 └── requirements.txt
 ```
@@ -54,7 +54,7 @@ Detecting malicious network traffic from flow-level features. This project class
 
 ## 3. Dataset
 
-**CICIDS2017** (Canadian Institute for Cybersecurity, University of New Brunswick) contains realistic benign traffic and common attacks, captured as network flows with 78 numeric features extracted by CICFlowMeter, plus a `Label` column.
+**CICIDS2017** (Canadian Institute for Cybersecurity, University of New Brunswick) contains realistic benign traffic and common attacks, captured as network flows with 78 numeric features extracted from packet-level traces.
 
 **Feature groups (examples):**
 
@@ -137,7 +137,7 @@ The notebook is organized as follows:
 | Cleaning | Strip spaces from column names, replace `inf` / `-inf` with `NaN` |
 | Target | `is_attack = 0` if `Label == BENIGN`, else `1` |
 | Missing values | Median imputation (`SimpleImputer`) |
-| Categorical encoding | `Destination Port` is bucketed into `well_known` (0-1023), `registered` (1024-49151) and `dynamic` (49152-65535), then one-hot encoded. Raw port numbers are kept as a numeric feature as well |
+| Categorical encoding | `Destination Port` is bucketed into `well_known` (0-1023), `registered` (1024-49151) and `dynamic` (49152-65535), then one-hot encoded. Raw port numbers are kept as a numeric feature and standardized. |
 | Normalization | `StandardScaler` on numeric features |
 | Split | Stratified 75% train / 25% test, `random_state=42` |
 | Leakage control | The preprocessing is **fit on the training split only**, then applied to the test split |
@@ -150,14 +150,14 @@ The notebook is organized as follows:
 | Decision Tree | `max_depth=12`, `class_weight="balanced"`, `random_state=42` |
 | Neural Network (MLP) | `MLPClassifier`, hidden layers (64, 32), `early_stopping=True`, `max_iter=200`, `random_state=42` (about 6.8k trainable parameters) |
 
-The MLP trains for up to 200 epochs but stops early once the validation score stops improving for 10 consecutive epochs. The actual number of epochs used is printed in the notebook (`Stopped after N epochs`).
+The MLP trains for up to 200 epochs but stops early once the validation score stops improving for 10 consecutive epochs. The actual number of epochs used is printed in the notebook (`Stopped after ...`).
 
 ### 6.3 Evaluation
 
 - **Metrics:** accuracy, precision, recall, F1-score, ROC AUC, precision-recall AUC (average precision)
-- **Plots:** metrics comparison, confusion matrices (counts and normalized), ROC and precision-recall curves, predicted-score distributions per class, **recall per attack type**, Logistic Regression coefficients, Decision Tree feature importance, a depth-3 tree visualization, F1 vs tree depth (under/over-fitting), model learning curve for the MLP
+- **Plots:** metrics comparison, confusion matrices (counts and normalized), ROC and precision-recall curves, predicted-score distributions per class, **recall per attack type**, Logistic Regression coefficient plots, and Decision Tree feature importances.
 - **Feasibility comparison:** training time and inference time (ms per 1,000 flows) for each model
-- **Feature correlation analysis:** Spearman correlation of features with the attack label, heatmap of the most label-correlated features, and a list of near-duplicate feature pairs (|corr| >= 0.95)
+- **Feature correlation analysis:** Spearman correlation of features with the attack label, heatmap of the most label-correlated features, and a list of near-duplicate feature pairs (|corr| >= 0.95).
 
 ---
 
@@ -202,11 +202,11 @@ Averaged equally across the 12 attack types, recall is about **84% for the Decis
 ## 8. Key findings and discussion
 
 1. **The Decision Tree is the best overall model here.** It has the highest F1, trains fastest of the non-linear models, and is interpretable through feature importances and readable rules.
-2. **The neural network does not beat the tree on this data.** The 0.56-point F1 gap is small and within what a different seed or split could change, but the MLP also costs 8 to 14 times more training time. Network-flow features are tabular, with threshold-like decision rules and heavily skewed values, which suits tree models well. A small untuned MLP has to approximate those rules.
-3. **High accuracy hides weak spots.** About 99% accuracy is driven by three high-volume attack types (DDoS, DoS Hulk, PortScan) that are almost trivially detected. Rare attacks are much harder, with Bot at about 53% recall for the tree and web attacks and SSH-Patator near zero for Logistic Regression.
+2. **The neural network does not beat the tree on this data.** The 0.56-point F1 gap is small and within what a different seed or split could change, but the MLP also costs 8 to 14 times more training time.
+3. **High accuracy hides weak spots.** About 99% accuracy is driven by three high-volume attack types (DDoS, DoS Hulk, PortScan) that are almost trivially detected. Rare attacks are much harder, and the model can miss them even when the overall score looks strong.
 4. **Linear models are not enough for rare attacks.** Logistic Regression misses most low-volume attacks because they are not linearly separable from normal traffic.
-5. **Redundant features exist.** CICIDS2017 contains many highly correlated or duplicated features (for example `Fwd Header Length` appears twice and `Subflow Fwd Packets` equals `Total Fwd Packets`). This makes Logistic Regression coefficients less reliable, because correlated features share credit.
-6. **Practical feasibility.** For a deployed intrusion detection system on tabular flow features, tree-based models offer the best trade-off of accuracy, speed, simplicity of retraining and explainability to a security analyst. Neural networks become attractive with very large datasets, raw packet or sequential inputs, or when many weak signals must be combined.
+5. **Redundant features exist.** CICIDS2017 contains many highly correlated or duplicated features (for example `Fwd Header Length` appears twice and `Subflow Fwd Packets` equals `Total Fwd Packets` in many cases).
+6. **Practical feasibility.** For a deployed intrusion detection system on tabular flow features, tree-based models offer the best trade-off of accuracy, speed, simplicity of retraining and explainability.
 
 ### Caveats on the high scores
 
@@ -240,5 +240,11 @@ Averaged equally across the 12 attack types, recall is about **84% for the Decis
 ## 11. Tech stack
 
 Python, NumPy, pandas, scikit-learn, Matplotlib, seaborn, Jupyter.
+
+---
+
+## 12. Acknowledgements and citation
+
+This project uses the CICIDS2017 dataset published by the Canadian Institute for Cybersecurity. The code and write-up are intended for educational and research use in supervised intrusion detection experiments.
 
 ---
