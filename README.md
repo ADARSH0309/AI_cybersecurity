@@ -1,7 +1,7 @@
 # Cyber Security Threat Detection with Machine Learning and Deep Learning (CICIDS2017)
 | Name | Roll No | 
 |---|---|
-| Adarsh Kumar Sharma (Copilot, B.Tech CSE Data Science) | 2301420058 |
+| Adarsh Kumar Sharma ( B.Tech CSE Data Science) | 2301420058 |
 
 Detecting malicious network traffic from flow-level features. This project classifies network flows from the **CICIDS2017** dataset as **normal** or **suspicious**, using machine learning baselines and a comparison with a neural network. The work is structured around a clean EDA and model evaluation workflow.
 
